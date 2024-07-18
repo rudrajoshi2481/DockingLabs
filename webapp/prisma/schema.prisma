@@ -1,0 +1,1757 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model access {
+  id      BigInt  @id @default(autoincrement())
+  user_id BigInt?
+  repo_id BigInt?
+  mode    Int?
+
+  @@unique([user_id, repo_id], map: "UQE_access_s")
+}
+
+model access_token {
+  id               BigInt  @id @default(autoincrement())
+  uid              BigInt?
+  name             String? @db.VarChar(255)
+  token_hash       String? @unique(map: "UQE_access_token_token_hash") @db.VarChar(255)
+  token_salt       String? @db.VarChar(255)
+  token_last_eight String? @db.VarChar(255)
+  scope            String? @db.VarChar(255)
+  created_unix     BigInt?
+  updated_unix     BigInt?
+
+  @@index([created_unix], map: "IDX_access_token_created_unix")
+  @@index([token_last_eight], map: "IDX_access_token_token_last_eight")
+  @@index([uid], map: "IDX_access_token_uid")
+  @@index([updated_unix], map: "IDX_access_token_updated_unix")
+}
+
+model action {
+  id           BigInt  @id @default(autoincrement())
+  user_id      BigInt?
+  op_type      Int?
+  act_user_id  BigInt?
+  repo_id      BigInt?
+  comment_id   BigInt?
+  is_deleted   Boolean @default(false)
+  ref_name     String? @db.VarChar(255)
+  is_private   Boolean @default(false)
+  content      String? @db.Text
+  created_unix BigInt?
+
+  @@index([act_user_id, repo_id, created_unix, user_id, is_deleted], map: "IDX_action_au_r_c_u_d")
+  @@index([created_unix, user_id, is_deleted], map: "IDX_action_c_u_d")
+  @@index([comment_id], map: "IDX_action_comment_id")
+  @@index([repo_id, user_id, is_deleted], map: "IDX_action_r_u_d")
+  @@index([user_id], map: "IDX_action_user_id")
+}
+
+model action_artifact {
+  id                   BigInt  @id @default(autoincrement())
+  run_id               BigInt?
+  runner_id            BigInt?
+  repo_id              BigInt?
+  owner_id             BigInt?
+  commit_sha           String? @db.VarChar(255)
+  storage_path         String? @db.VarChar(255)
+  file_size            BigInt?
+  file_compressed_size BigInt?
+  content_encoding     String? @db.VarChar(255)
+  artifact_path        String? @db.VarChar(255)
+  artifact_name        String? @db.VarChar(255)
+  status               BigInt?
+  created_unix         BigInt?
+  updated_unix         BigInt?
+  expired_unix         BigInt?
+
+  @@unique([run_id, artifact_path, artifact_name], map: "UQE_action_artifact_runid_name_path")
+  @@index([artifact_name], map: "IDX_action_artifact_artifact_name")
+  @@index([artifact_path], map: "IDX_action_artifact_artifact_path")
+  @@index([expired_unix], map: "IDX_action_artifact_expired_unix")
+  @@index([repo_id], map: "IDX_action_artifact_repo_id")
+  @@index([run_id], map: "IDX_action_artifact_run_id")
+  @@index([status], map: "IDX_action_artifact_status")
+  @@index([updated_unix], map: "IDX_action_artifact_updated_unix")
+}
+
+model action_run {
+  id                   BigInt   @id @default(autoincrement())
+  title                String?  @db.VarChar(255)
+  repo_id              BigInt?
+  owner_id             BigInt?
+  workflow_id          String?  @db.VarChar(255)
+  index                BigInt?
+  trigger_user_id      BigInt?
+  schedule_id          BigInt?
+  ref                  String?  @db.VarChar(255)
+  commit_sha           String?  @db.VarChar(255)
+  is_fork_pull_request Boolean?
+  need_approval        Boolean?
+  approved_by          BigInt?
+  event                String?  @db.VarChar(255)
+  event_payload        String?  @db.LongText
+  trigger_event        String?  @db.VarChar(255)
+  status               Int?
+  version              Int?     @default(0)
+  started              BigInt?
+  stopped              BigInt?
+  previous_duration    BigInt?
+  created              BigInt?
+  updated              BigInt?
+
+  @@unique([repo_id, index], map: "UQE_action_run_repo_index")
+  @@index([approved_by], map: "IDX_action_run_approved_by")
+  @@index([index], map: "IDX_action_run_index")
+  @@index([owner_id], map: "IDX_action_run_owner_id")
+  @@index([ref], map: "IDX_action_run_ref")
+  @@index([repo_id], map: "IDX_action_run_repo_id")
+  @@index([status], map: "IDX_action_run_status")
+  @@index([trigger_user_id], map: "IDX_action_run_trigger_user_id")
+  @@index([workflow_id], map: "IDX_action_run_workflow_id")
+}
+
+model action_run_index {
+  group_id  BigInt  @id
+  max_index BigInt?
+
+  @@index([max_index], map: "IDX_action_run_index_max_index")
+}
+
+model action_run_job {
+  id                   BigInt   @id @default(autoincrement())
+  run_id               BigInt?
+  repo_id              BigInt?
+  owner_id             BigInt?
+  commit_sha           String?  @db.VarChar(255)
+  is_fork_pull_request Boolean?
+  name                 String?  @db.VarChar(255)
+  attempt              BigInt?
+  workflow_payload     Bytes?   @db.Blob
+  job_id               String?  @db.VarChar(255)
+  needs                String?  @db.Text
+  runs_on              String?  @db.Text
+  task_id              BigInt?
+  status               Int?
+  started              BigInt?
+  stopped              BigInt?
+  created              BigInt?
+  updated              BigInt?
+
+  @@index([commit_sha], map: "IDX_action_run_job_commit_sha")
+  @@index([owner_id], map: "IDX_action_run_job_owner_id")
+  @@index([repo_id], map: "IDX_action_run_job_repo_id")
+  @@index([run_id], map: "IDX_action_run_job_run_id")
+  @@index([status], map: "IDX_action_run_job_status")
+  @@index([updated], map: "IDX_action_run_job_updated")
+}
+
+model action_runner {
+  id           BigInt  @id @default(autoincrement())
+  uuid         String? @unique(map: "UQE_action_runner_uuid") @db.Char(36)
+  name         String? @db.VarChar(255)
+  version      String? @db.VarChar(64)
+  owner_id     BigInt?
+  repo_id      BigInt?
+  description  String? @db.Text
+  base         Int?
+  repo_range   String? @db.VarChar(255)
+  token_hash   String? @unique(map: "UQE_action_runner_token_hash") @db.VarChar(255)
+  token_salt   String? @db.VarChar(255)
+  last_online  BigInt?
+  last_active  BigInt?
+  agent_labels String? @db.Text
+  created      BigInt?
+  updated      BigInt?
+  deleted      BigInt?
+
+  @@index([last_active], map: "IDX_action_runner_last_active")
+  @@index([last_online], map: "IDX_action_runner_last_online")
+  @@index([owner_id], map: "IDX_action_runner_owner_id")
+  @@index([repo_id], map: "IDX_action_runner_repo_id")
+}
+
+model action_runner_token {
+  id        BigInt   @id @default(autoincrement())
+  token     String?  @unique(map: "UQE_action_runner_token_token") @db.VarChar(255)
+  owner_id  BigInt?
+  repo_id   BigInt?
+  is_active Boolean?
+  created   BigInt?
+  updated   BigInt?
+  deleted   BigInt?
+
+  @@index([owner_id], map: "IDX_action_runner_token_owner_id")
+  @@index([repo_id], map: "IDX_action_runner_token_repo_id")
+}
+
+model action_schedule {
+  id              BigInt  @id @default(autoincrement())
+  title           String? @db.VarChar(255)
+  specs           String? @db.Text
+  repo_id         BigInt?
+  owner_id        BigInt?
+  workflow_id     String? @db.VarChar(255)
+  trigger_user_id BigInt?
+  ref             String? @db.VarChar(255)
+  commit_sha      String? @db.VarChar(255)
+  event           String? @db.VarChar(255)
+  event_payload   String? @db.LongText
+  content         Bytes?  @db.Blob
+  created         BigInt?
+  updated         BigInt?
+
+  @@index([owner_id], map: "IDX_action_schedule_owner_id")
+  @@index([repo_id], map: "IDX_action_schedule_repo_id")
+}
+
+model action_schedule_spec {
+  id          BigInt  @id @default(autoincrement())
+  repo_id     BigInt?
+  schedule_id BigInt?
+  next        BigInt?
+  prev        BigInt?
+  spec        String? @db.VarChar(255)
+  created     BigInt?
+  updated     BigInt?
+
+  @@index([next], map: "IDX_action_schedule_spec_next")
+  @@index([repo_id], map: "IDX_action_schedule_spec_repo_id")
+  @@index([schedule_id], map: "IDX_action_schedule_spec_schedule_id")
+}
+
+model action_task {
+  id                   BigInt   @id @default(autoincrement())
+  job_id               BigInt?
+  attempt              BigInt?
+  runner_id            BigInt?
+  status               Int?
+  started              BigInt?
+  stopped              BigInt?
+  repo_id              BigInt?
+  owner_id             BigInt?
+  commit_sha           String?  @db.VarChar(255)
+  is_fork_pull_request Boolean?
+  token_hash           String?  @unique(map: "UQE_action_task_token_hash") @db.VarChar(255)
+  token_salt           String?  @db.VarChar(255)
+  token_last_eight     String?  @db.VarChar(255)
+  log_filename         String?  @db.VarChar(255)
+  log_in_storage       Boolean?
+  log_length           BigInt?
+  log_size             BigInt?
+  log_indexes          Bytes?
+  log_expired          Boolean?
+  created              BigInt?
+  updated              BigInt?
+
+  @@index([commit_sha], map: "IDX_action_task_commit_sha")
+  @@index([owner_id], map: "IDX_action_task_owner_id")
+  @@index([repo_id], map: "IDX_action_task_repo_id")
+  @@index([runner_id], map: "IDX_action_task_runner_id")
+  @@index([started], map: "IDX_action_task_started")
+  @@index([status], map: "IDX_action_task_status")
+  @@index([token_last_eight], map: "IDX_action_task_token_last_eight")
+  @@index([updated], map: "IDX_action_task_updated")
+}
+
+model action_task_output {
+  id           BigInt  @id @default(autoincrement())
+  task_id      BigInt?
+  output_key   String? @db.VarChar(255)
+  output_value String? @db.MediumText
+
+  @@unique([task_id, output_key], map: "UQE_action_task_output_task_id_output_key")
+  @@index([task_id], map: "IDX_action_task_output_task_id")
+}
+
+model action_task_step {
+  id         BigInt  @id @default(autoincrement())
+  name       String? @db.VarChar(255)
+  task_id    BigInt?
+  index      BigInt?
+  repo_id    BigInt?
+  status     Int?
+  log_index  BigInt?
+  log_length BigInt?
+  started    BigInt?
+  stopped    BigInt?
+  created    BigInt?
+  updated    BigInt?
+
+  @@unique([task_id, index], map: "UQE_action_task_step_task_index")
+  @@index([index], map: "IDX_action_task_step_index")
+  @@index([repo_id], map: "IDX_action_task_step_repo_id")
+  @@index([status], map: "IDX_action_task_step_status")
+  @@index([task_id], map: "IDX_action_task_step_task_id")
+}
+
+model action_tasks_version {
+  id           BigInt  @id @default(autoincrement())
+  owner_id     BigInt?
+  repo_id      BigInt?
+  version      BigInt?
+  created_unix BigInt?
+  updated_unix BigInt?
+
+  @@unique([owner_id, repo_id], map: "UQE_action_tasks_version_owner_repo")
+  @@index([repo_id], map: "IDX_action_tasks_version_repo_id")
+}
+
+model action_variable {
+  id           BigInt  @id @default(autoincrement())
+  owner_id     BigInt?
+  repo_id      BigInt?
+  name         String  @db.VarChar(255)
+  data         String  @db.LongText
+  created_unix BigInt
+  updated_unix BigInt?
+
+  @@unique([owner_id, repo_id, name], map: "UQE_action_variable_owner_repo_name")
+  @@index([repo_id], map: "IDX_action_variable_repo_id")
+}
+
+model app_state {
+  id       String  @id @db.VarChar(200)
+  revision BigInt?
+  content  String? @db.LongText
+}
+
+model attachment {
+  id             BigInt  @id @default(autoincrement())
+  uuid           String? @unique(map: "UQE_attachment_uuid") @db.VarChar(40)
+  repo_id        BigInt?
+  issue_id       BigInt?
+  release_id     BigInt?
+  uploader_id    BigInt? @default(0)
+  comment_id     BigInt?
+  name           String? @db.VarChar(255)
+  download_count BigInt? @default(0)
+  size           BigInt? @default(0)
+  created_unix   BigInt?
+
+  @@index([comment_id], map: "IDX_attachment_comment_id")
+  @@index([issue_id], map: "IDX_attachment_issue_id")
+  @@index([release_id], map: "IDX_attachment_release_id")
+  @@index([repo_id], map: "IDX_attachment_repo_id")
+  @@index([uploader_id], map: "IDX_attachment_uploader_id")
+}
+
+model auth_token {
+  id           String  @id @db.VarChar(255)
+  token_hash   String? @db.VarChar(255)
+  user_id      BigInt?
+  expires_unix BigInt?
+
+  @@index([expires_unix], map: "IDX_auth_token_expires_unix")
+  @@index([user_id], map: "IDX_auth_token_user_id")
+}
+
+model badge {
+  id          BigInt  @id @default(autoincrement())
+  slug        String? @unique(map: "UQE_badge_slug") @db.VarChar(255)
+  description String? @db.VarChar(255)
+  image_url   String? @db.VarChar(255)
+}
+
+model branch {
+  id             BigInt   @id @default(autoincrement())
+  repo_id        BigInt?
+  name           String   @db.VarChar(255)
+  commit_id      String?  @db.VarChar(255)
+  commit_message String?  @db.Text
+  pusher_id      BigInt?
+  is_deleted     Boolean?
+  deleted_by_id  BigInt?
+  deleted_unix   BigInt?
+  commit_time    BigInt?
+  created_unix   BigInt?
+  updated_unix   BigInt?
+
+  @@unique([repo_id, name], map: "UQE_branch_s")
+  @@index([deleted_unix], map: "IDX_branch_deleted_unix")
+  @@index([is_deleted], map: "IDX_branch_is_deleted")
+}
+
+model collaboration {
+  id           BigInt  @id @default(autoincrement())
+  repo_id      BigInt
+  user_id      BigInt
+  mode         Int     @default(2)
+  created_unix BigInt?
+  updated_unix BigInt?
+
+  @@unique([repo_id, user_id], map: "UQE_collaboration_s")
+  @@index([created_unix], map: "IDX_collaboration_created_unix")
+  @@index([repo_id], map: "IDX_collaboration_repo_id")
+  @@index([updated_unix], map: "IDX_collaboration_updated_unix")
+  @@index([user_id], map: "IDX_collaboration_user_id")
+}
+
+model comment {
+  id                 BigInt   @id @default(autoincrement())
+  type               Int?
+  poster_id          BigInt?
+  original_author    String?  @db.VarChar(255)
+  original_author_id BigInt?
+  issue_id           BigInt?
+  label_id           BigInt?
+  old_project_id     BigInt?
+  project_id         BigInt?
+  old_milestone_id   BigInt?
+  milestone_id       BigInt?
+  time_id            BigInt?
+  assignee_id        BigInt?
+  removed_assignee   Boolean?
+  assignee_team_id   BigInt   @default(0)
+  resolve_doer_id    BigInt?
+  old_title          String?  @db.VarChar(255)
+  new_title          String?  @db.VarChar(255)
+  old_ref            String?  @db.VarChar(255)
+  new_ref            String?  @db.VarChar(255)
+  dependent_issue_id BigInt?
+  commit_id          BigInt?
+  line               BigInt?
+  tree_path          String?  @db.VarChar(255)
+  content            String?  @db.LongText
+  patch              String?  @db.LongText
+  created_unix       BigInt?
+  updated_unix       BigInt?
+  commit_sha         String?  @db.VarChar(64)
+  review_id          BigInt?
+  invalidated        Boolean?
+  ref_repo_id        BigInt?
+  ref_issue_id       BigInt?
+  ref_comment_id     BigInt?
+  ref_action         Int?     @db.SmallInt
+  ref_is_pull        Boolean?
+
+  @@index([created_unix], map: "IDX_comment_created_unix")
+  @@index([dependent_issue_id], map: "IDX_comment_dependent_issue_id")
+  @@index([issue_id], map: "IDX_comment_issue_id")
+  @@index([poster_id], map: "IDX_comment_poster_id")
+  @@index([ref_comment_id], map: "IDX_comment_ref_comment_id")
+  @@index([ref_issue_id], map: "IDX_comment_ref_issue_id")
+  @@index([ref_repo_id], map: "IDX_comment_ref_repo_id")
+  @@index([review_id], map: "IDX_comment_review_id")
+  @@index([type], map: "IDX_comment_type")
+  @@index([updated_unix], map: "IDX_comment_updated_unix")
+}
+
+model commit_status {
+  id           BigInt  @id @default(autoincrement())
+  index        BigInt?
+  repo_id      BigInt?
+  state        String  @db.VarChar(7)
+  sha          String  @db.VarChar(64)
+  target_url   String? @db.Text
+  description  String? @db.Text
+  context_hash String? @db.VarChar(64)
+  context      String? @db.Text
+  creator_id   BigInt?
+  created_unix BigInt?
+  updated_unix BigInt?
+
+  @@unique([index, repo_id, sha], map: "UQE_commit_status_repo_sha_index")
+  @@index([context_hash], map: "IDX_commit_status_context_hash")
+  @@index([created_unix], map: "IDX_commit_status_created_unix")
+  @@index([index], map: "IDX_commit_status_index")
+  @@index([repo_id], map: "IDX_commit_status_repo_id")
+  @@index([sha], map: "IDX_commit_status_sha")
+  @@index([updated_unix], map: "IDX_commit_status_updated_unix")
+}
+
+model commit_status_index {
+  id        BigInt  @id @default(autoincrement())
+  repo_id   BigInt?
+  sha       String? @db.VarChar(255)
+  max_index BigInt?
+
+  @@unique([repo_id, sha], map: "UQE_commit_status_index_repo_sha")
+  @@index([max_index], map: "IDX_commit_status_index_max_index")
+}
+
+model commit_status_summary {
+  id         BigInt  @id @default(autoincrement())
+  repo_id    BigInt?
+  sha        String  @db.VarChar(64)
+  state      String  @db.VarChar(7)
+  target_url String? @db.Text
+
+  @@unique([repo_id, sha], map: "UQE_commit_status_summary_repo_id_sha")
+  @@index([repo_id], map: "IDX_commit_status_summary_repo_id")
+  @@index([sha], map: "IDX_commit_status_summary_sha")
+}
+
+model dbfs_data {
+  id          BigInt @id @default(autoincrement())
+  revision    BigInt
+  meta_id     BigInt
+  blob_offset BigInt
+  blob_size   BigInt
+  blob_data   Bytes  @db.Blob
+
+  @@index([meta_id, blob_offset], map: "IDX_dbfs_data_meta_offset")
+}
+
+model dbfs_meta {
+  id               BigInt @id @default(autoincrement())
+  full_path        String @unique(map: "UQE_dbfs_meta_full_path") @db.VarChar(500)
+  block_size       BigInt
+  file_size        BigInt
+  create_timestamp BigInt
+  modify_timestamp BigInt
+}
+
+model deploy_key {
+  id           BigInt  @id @default(autoincrement())
+  key_id       BigInt?
+  repo_id      BigInt?
+  name         String? @db.VarChar(255)
+  fingerprint  String? @db.VarChar(255)
+  mode         Int     @default(1)
+  created_unix BigInt?
+  updated_unix BigInt?
+
+  @@unique([key_id, repo_id], map: "UQE_deploy_key_s")
+  @@index([key_id], map: "IDX_deploy_key_key_id")
+  @@index([repo_id], map: "IDX_deploy_key_repo_id")
+}
+
+model email_address {
+  id           BigInt   @id @default(autoincrement())
+  uid          BigInt
+  email        String   @unique(map: "UQE_email_address_email") @db.VarChar(255)
+  lower_email  String   @unique(map: "UQE_email_address_lower_email") @db.VarChar(255)
+  is_activated Boolean?
+  is_primary   Boolean  @default(false)
+
+  @@index([uid], map: "IDX_email_address_uid")
+}
+
+model email_hash {
+  hash  String @id @db.VarChar(32)
+  email String @unique(map: "UQE_email_hash_email") @db.VarChar(255)
+}
+
+model external_login_user {
+  external_id         String    @db.VarChar(255)
+  user_id             BigInt
+  login_source_id     BigInt
+  raw_data            String?   @db.Text
+  provider            String?   @db.VarChar(25)
+  email               String?   @db.VarChar(255)
+  name                String?   @db.VarChar(255)
+  first_name          String?   @db.VarChar(255)
+  last_name           String?   @db.VarChar(255)
+  nick_name           String?   @db.VarChar(255)
+  description         String?   @db.VarChar(255)
+  avatar_url          String?   @db.Text
+  location            String?   @db.VarChar(255)
+  access_token        String?   @db.Text
+  access_token_secret String?   @db.Text
+  refresh_token       String?   @db.Text
+  expires_at          DateTime? @db.DateTime(0)
+
+  @@id([external_id, login_source_id])
+  @@index([provider], map: "IDX_external_login_user_provider")
+  @@index([user_id], map: "IDX_external_login_user_user_id")
+}
+
+model follow {
+  id           BigInt  @id @default(autoincrement())
+  user_id      BigInt?
+  follow_id    BigInt?
+  created_unix BigInt?
+
+  @@unique([user_id, follow_id], map: "UQE_follow_follow")
+  @@index([created_unix], map: "IDX_follow_created_unix")
+}
+
+model gpg_key {
+  id                  BigInt   @id @default(autoincrement())
+  owner_id            BigInt
+  key_id              String   @db.Char(16)
+  primary_key_id      String?  @db.Char(16)
+  content             String   @db.MediumText
+  created_unix        BigInt?
+  expired_unix        BigInt?
+  added_unix          BigInt?
+  emails              String?  @db.Text
+  verified            Boolean  @default(false)
+  can_sign            Boolean?
+  can_encrypt_comms   Boolean?
+  can_encrypt_storage Boolean?
+  can_certify         Boolean?
+
+  @@index([key_id], map: "IDX_gpg_key_key_id")
+  @@index([owner_id], map: "IDX_gpg_key_owner_id")
+}
+
+model gpg_key_import {
+  key_id  String @id @db.Char(16)
+  content String @db.MediumText
+}
+
+model hook_task {
+  id               BigInt   @id @default(autoincrement())
+  hook_id          BigInt?
+  uuid             String?  @unique(map: "UQE_hook_task_uuid") @db.VarChar(255)
+  payload_content  String?  @db.LongText
+  payload_version  Int?     @default(1)
+  event_type       String?  @db.VarChar(255)
+  is_delivered     Boolean?
+  delivered        BigInt?
+  is_succeed       Boolean?
+  request_content  String?  @db.LongText
+  response_content String?  @db.LongText
+
+  @@index([hook_id], map: "IDX_hook_task_hook_id")
+}
+
+model issue {
+  id                 BigInt   @id @default(autoincrement())
+  repo_id            BigInt?
+  index              BigInt?
+  poster_id          BigInt?
+  original_author    String?  @db.VarChar(255)
+  original_author_id BigInt?
+  name               String?  @db.VarChar(255)
+  content            String?  @db.LongText
+  milestone_id       BigInt?
+  priority           Int?
+  is_closed          Boolean?
+  is_pull            Boolean?
+  num_comments       Int?
+  ref                String?  @db.VarChar(255)
+  pin_order          Int?     @default(0)
+  deadline_unix      BigInt?
+  created_unix       BigInt?
+  updated_unix       BigInt?
+  closed_unix        BigInt?
+  is_locked          Boolean  @default(false)
+
+  @@unique([repo_id, index], map: "UQE_issue_repo_index")
+  @@index([closed_unix], map: "IDX_issue_closed_unix")
+  @@index([created_unix], map: "IDX_issue_created_unix")
+  @@index([deadline_unix], map: "IDX_issue_deadline_unix")
+  @@index([is_closed], map: "IDX_issue_is_closed")
+  @@index([is_pull], map: "IDX_issue_is_pull")
+  @@index([milestone_id], map: "IDX_issue_milestone_id")
+  @@index([original_author_id], map: "IDX_issue_original_author_id")
+  @@index([poster_id], map: "IDX_issue_poster_id")
+  @@index([repo_id], map: "IDX_issue_repo_id")
+  @@index([updated_unix], map: "IDX_issue_updated_unix")
+}
+
+model issue_assignees {
+  id          BigInt  @id @default(autoincrement())
+  assignee_id BigInt?
+  issue_id    BigInt?
+
+  @@index([assignee_id], map: "IDX_issue_assignees_assignee_id")
+  @@index([issue_id], map: "IDX_issue_assignees_issue_id")
+}
+
+model issue_content_history {
+  id               BigInt   @id @default(autoincrement())
+  poster_id        BigInt?
+  issue_id         BigInt?
+  comment_id       BigInt?
+  edited_unix      BigInt?
+  content_text     String?  @db.LongText
+  is_first_created Boolean?
+  is_deleted       Boolean?
+
+  @@index([comment_id], map: "IDX_issue_content_history_comment_id")
+  @@index([edited_unix], map: "IDX_issue_content_history_edited_unix")
+  @@index([issue_id], map: "IDX_issue_content_history_issue_id")
+}
+
+model issue_dependency {
+  id            BigInt  @id @default(autoincrement())
+  user_id       BigInt
+  issue_id      BigInt
+  dependency_id BigInt
+  created_unix  BigInt?
+  updated_unix  BigInt?
+
+  @@unique([issue_id, dependency_id], map: "UQE_issue_dependency_issue_dependency")
+}
+
+model issue_index {
+  group_id  BigInt  @id
+  max_index BigInt?
+
+  @@index([max_index], map: "IDX_issue_index_max_index")
+}
+
+model issue_label {
+  id       BigInt  @id @default(autoincrement())
+  issue_id BigInt?
+  label_id BigInt?
+
+  @@unique([issue_id, label_id], map: "UQE_issue_label_s")
+}
+
+model issue_user {
+  id           BigInt   @id @default(autoincrement())
+  uid          BigInt?
+  issue_id     BigInt?
+  is_read      Boolean?
+  is_mentioned Boolean?
+
+  @@unique([uid, issue_id], map: "UQE_issue_user_uid_to_issue")
+  @@index([issue_id], map: "IDX_issue_user_issue_id")
+  @@index([uid], map: "IDX_issue_user_uid")
+}
+
+model issue_watch {
+  id           BigInt  @id @default(autoincrement())
+  user_id      BigInt
+  issue_id     BigInt
+  is_watching  Boolean
+  created_unix BigInt
+  updated_unix BigInt
+
+  @@unique([user_id, issue_id], map: "UQE_issue_watch_watch")
+}
+
+model label {
+  id                BigInt   @id @default(autoincrement())
+  repo_id           BigInt?
+  org_id            BigInt?
+  name              String?  @db.VarChar(255)
+  exclusive         Boolean?
+  description       String?  @db.VarChar(255)
+  color             String?  @db.VarChar(7)
+  num_issues        Int?
+  num_closed_issues Int?
+  created_unix      BigInt?
+  updated_unix      BigInt?
+  archived_unix     BigInt?
+
+  @@index([created_unix], map: "IDX_label_created_unix")
+  @@index([org_id], map: "IDX_label_org_id")
+  @@index([repo_id], map: "IDX_label_repo_id")
+  @@index([updated_unix], map: "IDX_label_updated_unix")
+}
+
+model language_stat {
+  id           BigInt   @id @default(autoincrement())
+  repo_id      BigInt
+  commit_id    String?  @db.VarChar(255)
+  is_primary   Boolean?
+  language     String   @db.VarChar(50)
+  size         BigInt   @default(0)
+  created_unix BigInt?
+
+  @@unique([repo_id, language], map: "UQE_language_stat_s")
+  @@index([created_unix], map: "IDX_language_stat_created_unix")
+  @@index([language], map: "IDX_language_stat_language")
+  @@index([repo_id], map: "IDX_language_stat_repo_id")
+}
+
+model lfs_lock {
+  id       BigInt    @id @default(autoincrement())
+  repo_id  BigInt
+  owner_id BigInt
+  path     String?   @db.Text
+  created  DateTime? @db.DateTime(0)
+
+  @@index([owner_id], map: "IDX_lfs_lock_owner_id")
+  @@index([repo_id], map: "IDX_lfs_lock_repo_id")
+}
+
+model lfs_meta_object {
+  id            BigInt  @id @default(autoincrement())
+  oid           String  @db.VarChar(255)
+  size          BigInt
+  repository_id BigInt
+  created_unix  BigInt?
+  updated_unix  BigInt?
+
+  @@unique([oid, repository_id], map: "UQE_lfs_meta_object_s")
+  @@index([oid], map: "IDX_lfs_meta_object_oid")
+  @@index([repository_id], map: "IDX_lfs_meta_object_repository_id")
+  @@index([updated_unix], map: "IDX_lfs_meta_object_updated_unix")
+}
+
+model login_source {
+  id              BigInt  @id @default(autoincrement())
+  type            Int?
+  name            String? @unique(map: "UQE_login_source_name") @db.VarChar(255)
+  is_active       Boolean @default(false)
+  is_sync_enabled Boolean @default(false)
+  cfg             String? @db.Text
+  created_unix    BigInt?
+  updated_unix    BigInt?
+
+  @@index([created_unix], map: "IDX_login_source_created_unix")
+  @@index([is_active], map: "IDX_login_source_is_active")
+  @@index([is_sync_enabled], map: "IDX_login_source_is_sync_enabled")
+  @@index([updated_unix], map: "IDX_login_source_updated_unix")
+}
+
+model milestone {
+  id                BigInt   @id @default(autoincrement())
+  repo_id           BigInt?
+  name              String?  @db.VarChar(255)
+  content           String?  @db.Text
+  is_closed         Boolean?
+  num_issues        Int?
+  num_closed_issues Int?
+  completeness      Int?
+  created_unix      BigInt?
+  updated_unix      BigInt?
+  deadline_unix     BigInt?
+  closed_date_unix  BigInt?
+
+  @@index([created_unix], map: "IDX_milestone_created_unix")
+  @@index([repo_id], map: "IDX_milestone_repo_id")
+  @@index([updated_unix], map: "IDX_milestone_updated_unix")
+}
+
+model mirror {
+  id               BigInt  @id @default(autoincrement())
+  repo_id          BigInt?
+  interval         BigInt?
+  enable_prune     Boolean @default(true)
+  updated_unix     BigInt?
+  next_update_unix BigInt?
+  lfs_enabled      Boolean @default(false)
+  lfs_endpoint     String? @db.Text
+  remote_address   String? @db.VarChar(2048)
+
+  @@index([next_update_unix], map: "IDX_mirror_next_update_unix")
+  @@index([repo_id], map: "IDX_mirror_repo_id")
+  @@index([updated_unix], map: "IDX_mirror_updated_unix")
+}
+
+model notice {
+  id           BigInt  @id @default(autoincrement())
+  type         Int?
+  description  String? @db.Text
+  created_unix BigInt?
+
+  @@index([created_unix], map: "IDX_notice_created_unix")
+}
+
+model notification {
+  id           BigInt  @id @default(autoincrement())
+  user_id      BigInt
+  repo_id      BigInt
+  status       Int     @db.SmallInt
+  source       Int     @db.SmallInt
+  issue_id     BigInt
+  commit_id    String? @db.VarChar(255)
+  comment_id   BigInt?
+  updated_by   BigInt
+  created_unix BigInt
+  updated_unix BigInt
+
+  @@index([commit_id], map: "IDX_notification_commit_id")
+  @@index([created_unix], map: "IDX_notification_created_unix")
+  @@index([issue_id], map: "IDX_notification_issue_id")
+  @@index([repo_id], map: "IDX_notification_repo_id")
+  @@index([source], map: "IDX_notification_source")
+  @@index([status], map: "IDX_notification_status")
+  @@index([updated_by], map: "IDX_notification_updated_by")
+  @@index([updated_unix], map: "IDX_notification_updated_unix")
+  @@index([user_id], map: "IDX_notification_user_id")
+}
+
+model oauth2_application {
+  id                  BigInt  @id @default(autoincrement())
+  uid                 BigInt?
+  name                String? @db.VarChar(255)
+  client_id           String? @unique(map: "UQE_oauth2_application_client_id") @db.VarChar(255)
+  client_secret       String? @db.VarChar(255)
+  confidential_client Boolean @default(true)
+  redirect_uris       String? @db.Text
+  created_unix        BigInt?
+  updated_unix        BigInt?
+
+  @@index([created_unix], map: "IDX_oauth2_application_created_unix")
+  @@index([uid], map: "IDX_oauth2_application_uid")
+  @@index([updated_unix], map: "IDX_oauth2_application_updated_unix")
+}
+
+model oauth2_authorization_code {
+  id                    BigInt  @id @default(autoincrement())
+  grant_id              BigInt?
+  code                  String? @unique(map: "UQE_oauth2_authorization_code_code") @db.VarChar(255)
+  code_challenge        String? @db.VarChar(255)
+  code_challenge_method String? @db.VarChar(255)
+  redirect_uri          String? @db.VarChar(255)
+  valid_until           BigInt?
+
+  @@index([valid_until], map: "IDX_oauth2_authorization_code_valid_until")
+}
+
+model oauth2_grant {
+  id             BigInt  @id @default(autoincrement())
+  user_id        BigInt?
+  application_id BigInt?
+  counter        BigInt  @default(1)
+  scope          String? @db.Text
+  nonce          String? @db.Text
+  created_unix   BigInt?
+  updated_unix   BigInt?
+
+  @@unique([user_id, application_id], map: "UQE_oauth2_grant_user_application")
+  @@index([application_id], map: "IDX_oauth2_grant_application_id")
+  @@index([user_id], map: "IDX_oauth2_grant_user_id")
+}
+
+model org_user {
+  id        BigInt   @id @default(autoincrement())
+  uid       BigInt?
+  org_id    BigInt?
+  is_public Boolean?
+
+  @@unique([uid, org_id], map: "UQE_org_user_s")
+  @@index([is_public], map: "IDX_org_user_is_public")
+  @@index([org_id], map: "IDX_org_user_org_id")
+  @@index([uid], map: "IDX_org_user_uid")
+}
+
+/// This model has been renamed to 'Renamedpackage' during introspection, because the original name 'package' is reserved.
+model Renamedpackage {
+  id                BigInt  @id @default(autoincrement())
+  owner_id          BigInt
+  repo_id           BigInt?
+  type              String  @db.VarChar(255)
+  name              String  @db.VarChar(255)
+  lower_name        String  @db.VarChar(255)
+  semver_compatible Boolean @default(false)
+  is_internal       Boolean @default(false)
+
+  @@unique([owner_id, type, lower_name], map: "UQE_package_s")
+  @@index([lower_name], map: "IDX_package_lower_name")
+  @@index([owner_id], map: "IDX_package_owner_id")
+  @@index([repo_id], map: "IDX_package_repo_id")
+  @@index([type], map: "IDX_package_type")
+  @@map("package")
+}
+
+model package_blob {
+  id           BigInt @id @default(autoincrement())
+  size         BigInt @default(0)
+  hash_md5     String @unique(map: "UQE_package_blob_md5") @db.Char(32)
+  hash_sha1    String @unique(map: "UQE_package_blob_sha1") @db.Char(40)
+  hash_sha256  String @unique(map: "UQE_package_blob_sha256") @db.Char(64)
+  hash_sha512  String @unique(map: "UQE_package_blob_sha512") @db.Char(128)
+  created_unix BigInt
+
+  @@index([created_unix], map: "IDX_package_blob_created_unix")
+  @@index([hash_md5], map: "IDX_package_blob_hash_md5")
+  @@index([hash_sha1], map: "IDX_package_blob_hash_sha1")
+  @@index([hash_sha256], map: "IDX_package_blob_hash_sha256")
+  @@index([hash_sha512], map: "IDX_package_blob_hash_sha512")
+}
+
+model package_blob_upload {
+  id               String @id @db.VarChar(255)
+  bytes_received   BigInt @default(0)
+  hash_state_bytes Bytes? @db.Blob
+  created_unix     BigInt
+  updated_unix     BigInt
+
+  @@index([updated_unix], map: "IDX_package_blob_upload_updated_unix")
+}
+
+model package_cleanup_rule {
+  id              BigInt  @id @default(autoincrement())
+  enabled         Boolean @default(false)
+  owner_id        BigInt  @default(0)
+  type            String  @db.VarChar(255)
+  keep_count      Int     @default(0)
+  keep_pattern    String  @default("") @db.VarChar(255)
+  remove_days     Int     @default(0)
+  remove_pattern  String  @default("") @db.VarChar(255)
+  match_full_name Boolean @default(false)
+  created_unix    BigInt  @default(0)
+  updated_unix    BigInt  @default(0)
+
+  @@unique([owner_id, type], map: "UQE_package_cleanup_rule_s")
+  @@index([enabled], map: "IDX_package_cleanup_rule_enabled")
+  @@index([owner_id], map: "IDX_package_cleanup_rule_owner_id")
+  @@index([type], map: "IDX_package_cleanup_rule_type")
+}
+
+model package_file {
+  id            BigInt  @id @default(autoincrement())
+  version_id    BigInt
+  blob_id       BigInt
+  name          String  @db.VarChar(255)
+  lower_name    String  @db.VarChar(255)
+  composite_key String? @db.VarChar(255)
+  is_lead       Boolean @default(false)
+  created_unix  BigInt
+
+  @@unique([version_id, lower_name, composite_key], map: "UQE_package_file_s")
+  @@index([blob_id], map: "IDX_package_file_blob_id")
+  @@index([composite_key], map: "IDX_package_file_composite_key")
+  @@index([created_unix], map: "IDX_package_file_created_unix")
+  @@index([lower_name], map: "IDX_package_file_lower_name")
+  @@index([version_id], map: "IDX_package_file_version_id")
+}
+
+model package_property {
+  id       BigInt @id @default(autoincrement())
+  ref_type BigInt
+  ref_id   BigInt
+  name     String @db.VarChar(255)
+  value    String @db.Text
+
+  @@index([name], map: "IDX_package_property_name")
+  @@index([ref_id], map: "IDX_package_property_ref_id")
+  @@index([ref_type], map: "IDX_package_property_ref_type")
+}
+
+model package_version {
+  id             BigInt  @id @default(autoincrement())
+  package_id     BigInt
+  creator_id     BigInt  @default(0)
+  version        String  @db.VarChar(255)
+  lower_version  String  @db.VarChar(255)
+  created_unix   BigInt
+  is_internal    Boolean @default(false)
+  metadata_json  String? @db.LongText
+  download_count BigInt  @default(0)
+
+  @@unique([package_id, lower_version], map: "UQE_package_version_s")
+  @@index([created_unix], map: "IDX_package_version_created_unix")
+  @@index([is_internal], map: "IDX_package_version_is_internal")
+  @@index([lower_version], map: "IDX_package_version_lower_version")
+  @@index([package_id], map: "IDX_package_version_package_id")
+}
+
+model project {
+  id               BigInt   @id @default(autoincrement())
+  title            String   @db.VarChar(255)
+  description      String?  @db.Text
+  owner_id         BigInt?
+  repo_id          BigInt?
+  creator_id       BigInt
+  is_closed        Boolean?
+  board_type       Int?     @db.UnsignedInt
+  card_type        Int?     @db.UnsignedInt
+  type             Int?     @db.UnsignedInt
+  created_unix     BigInt?
+  updated_unix     BigInt?
+  closed_date_unix BigInt?
+
+  @@index([created_unix], map: "IDX_project_created_unix")
+  @@index([is_closed], map: "IDX_project_is_closed")
+  @@index([owner_id], map: "IDX_project_owner_id")
+  @@index([repo_id], map: "IDX_project_repo_id")
+  @@index([title], map: "IDX_project_title")
+  @@index([updated_unix], map: "IDX_project_updated_unix")
+}
+
+model project_board {
+  id           BigInt  @id @default(autoincrement())
+  title        String? @db.VarChar(255)
+  default      Boolean @default(false)
+  sorting      Int     @default(0)
+  color        String? @db.VarChar(7)
+  project_id   BigInt
+  creator_id   BigInt
+  created_unix BigInt?
+  updated_unix BigInt?
+
+  @@index([created_unix], map: "IDX_project_board_created_unix")
+  @@index([project_id], map: "IDX_project_board_project_id")
+  @@index([updated_unix], map: "IDX_project_board_updated_unix")
+}
+
+model project_issue {
+  id               BigInt  @id @default(autoincrement())
+  issue_id         BigInt?
+  project_id       BigInt?
+  project_board_id BigInt?
+  sorting          BigInt  @default(0)
+
+  @@index([issue_id], map: "IDX_project_issue_issue_id")
+  @@index([project_board_id], map: "IDX_project_issue_project_board_id")
+  @@index([project_id], map: "IDX_project_issue_project_id")
+}
+
+model protected_branch {
+  id                                BigInt   @id @default(autoincrement())
+  repo_id                           BigInt?
+  branch_name                       String?  @db.VarChar(255)
+  can_push                          Boolean  @default(false)
+  enable_whitelist                  Boolean?
+  whitelist_user_i_ds               String?  @db.Text
+  whitelist_team_i_ds               String?  @db.Text
+  enable_merge_whitelist            Boolean  @default(false)
+  whitelist_deploy_keys             Boolean  @default(false)
+  merge_whitelist_user_i_ds         String?  @db.Text
+  merge_whitelist_team_i_ds         String?  @db.Text
+  enable_status_check               Boolean  @default(false)
+  status_check_contexts             String?  @db.Text
+  enable_approvals_whitelist        Boolean  @default(false)
+  approvals_whitelist_user_i_ds     String?  @db.Text
+  approvals_whitelist_team_i_ds     String?  @db.Text
+  required_approvals                BigInt   @default(0)
+  block_on_rejected_reviews         Boolean  @default(false)
+  block_on_official_review_requests Boolean  @default(false)
+  block_on_outdated_branch          Boolean  @default(false)
+  dismiss_stale_approvals           Boolean  @default(false)
+  ignore_stale_approvals            Boolean  @default(false)
+  require_signed_commits            Boolean  @default(false)
+  protected_file_patterns           String?  @db.Text
+  unprotected_file_patterns         String?  @db.Text
+  created_unix                      BigInt?
+  updated_unix                      BigInt?
+
+  @@unique([repo_id, branch_name], map: "UQE_protected_branch_s")
+}
+
+model protected_tag {
+  id                  BigInt  @id @default(autoincrement())
+  repo_id             BigInt?
+  name_pattern        String? @db.VarChar(255)
+  allowlist_user_i_ds String? @db.Text
+  allowlist_team_i_ds String? @db.Text
+  created_unix        BigInt?
+  updated_unix        BigInt?
+}
+
+model public_key {
+  id              BigInt  @id @default(autoincrement())
+  owner_id        BigInt
+  name            String  @db.VarChar(255)
+  fingerprint     String  @db.VarChar(255)
+  content         String  @db.MediumText
+  mode            Int     @default(2)
+  type            Int     @default(1)
+  login_source_id BigInt  @default(0)
+  created_unix    BigInt?
+  updated_unix    BigInt?
+  verified        Boolean @default(false)
+
+  @@index([fingerprint], map: "IDX_public_key_fingerprint")
+  @@index([owner_id], map: "IDX_public_key_owner_id")
+}
+
+model pull_auto_merge {
+  id           BigInt  @id @default(autoincrement())
+  pull_id      BigInt? @unique(map: "UQE_pull_auto_merge_pull_id")
+  doer_id      BigInt
+  merge_style  String? @db.VarChar(30)
+  message      String? @db.LongText
+  created_unix BigInt?
+
+  @@index([doer_id], map: "IDX_pull_auto_merge_doer_id")
+}
+
+model pull_request {
+  id                      BigInt   @id @default(autoincrement())
+  type                    Int?
+  status                  Int?
+  conflicted_files        String?  @db.Text
+  commits_ahead           Int?
+  commits_behind          Int?
+  changed_protected_files String?  @db.Text
+  issue_id                BigInt?
+  index                   BigInt?
+  head_repo_id            BigInt?
+  base_repo_id            BigInt?
+  head_branch             String?  @db.VarChar(255)
+  base_branch             String?  @db.VarChar(255)
+  merge_base              String?  @db.VarChar(64)
+  allow_maintainer_edit   Boolean  @default(false)
+  has_merged              Boolean?
+  merged_commit_id        String?  @db.VarChar(64)
+  merger_id               BigInt?
+  merged_unix             BigInt?
+  flow                    Int      @default(0)
+
+  @@index([base_repo_id], map: "IDX_pull_request_base_repo_id")
+  @@index([has_merged], map: "IDX_pull_request_has_merged")
+  @@index([head_repo_id], map: "IDX_pull_request_head_repo_id")
+  @@index([issue_id], map: "IDX_pull_request_issue_id")
+  @@index([merged_unix], map: "IDX_pull_request_merged_unix")
+  @@index([merger_id], map: "IDX_pull_request_merger_id")
+}
+
+model push_mirror {
+  id             BigInt  @id @default(autoincrement())
+  repo_id        BigInt?
+  remote_name    String? @db.VarChar(255)
+  remote_address String? @db.VarChar(2048)
+  sync_on_commit Boolean @default(true)
+  interval       BigInt?
+  created_unix   BigInt?
+  last_update    BigInt?
+  last_error     String? @db.Text
+
+  @@index([last_update], map: "IDX_push_mirror_last_update")
+  @@index([repo_id], map: "IDX_push_mirror_repo_id")
+}
+
+model reaction {
+  id                 BigInt  @id @default(autoincrement())
+  type               String  @db.VarChar(255)
+  issue_id           BigInt
+  comment_id         BigInt?
+  user_id            BigInt
+  original_author_id BigInt  @default(0)
+  original_author    String? @db.VarChar(255)
+  created_unix       BigInt?
+
+  @@unique([type, issue_id, comment_id, user_id, original_author_id, original_author], map: "UQE_reaction_s")
+  @@index([comment_id], map: "IDX_reaction_comment_id")
+  @@index([created_unix], map: "IDX_reaction_created_unix")
+  @@index([issue_id], map: "IDX_reaction_issue_id")
+  @@index([original_author], map: "IDX_reaction_original_author")
+  @@index([original_author_id], map: "IDX_reaction_original_author_id")
+  @@index([type], map: "IDX_reaction_type")
+  @@index([user_id], map: "IDX_reaction_user_id")
+}
+
+model release {
+  id                 BigInt  @id @default(autoincrement())
+  repo_id            BigInt?
+  publisher_id       BigInt?
+  tag_name           String? @db.VarChar(255)
+  original_author    String? @db.VarChar(255)
+  original_author_id BigInt?
+  lower_tag_name     String? @db.VarChar(255)
+  target             String? @db.VarChar(255)
+  title              String? @db.VarChar(255)
+  sha1               String? @db.VarChar(64)
+  num_commits        BigInt?
+  note               String? @db.Text
+  is_draft           Boolean @default(false)
+  is_prerelease      Boolean @default(false)
+  is_tag             Boolean @default(false)
+  created_unix       BigInt?
+
+  @@unique([repo_id, tag_name], map: "UQE_release_n")
+  @@index([created_unix], map: "IDX_release_created_unix")
+  @@index([original_author_id], map: "IDX_release_original_author_id")
+  @@index([publisher_id], map: "IDX_release_publisher_id")
+  @@index([repo_id], map: "IDX_release_repo_id")
+  @@index([tag_name], map: "IDX_release_tag_name")
+}
+
+model renamed_branch {
+  id           BigInt  @id @default(autoincrement())
+  repo_id      BigInt
+  from         String? @db.VarChar(255)
+  to           String? @db.VarChar(255)
+  created_unix BigInt?
+
+  @@index([repo_id], map: "IDX_renamed_branch_repo_id")
+}
+
+model repo_archiver {
+  id           BigInt  @id @default(autoincrement())
+  repo_id      BigInt?
+  type         Int?
+  status       Int?
+  commit_id    String? @db.VarChar(64)
+  created_unix BigInt
+
+  @@unique([repo_id, type, commit_id], map: "UQE_repo_archiver_s")
+  @@index([created_unix], map: "IDX_repo_archiver_created_unix")
+  @@index([repo_id], map: "IDX_repo_archiver_repo_id")
+}
+
+model repo_indexer_status {
+  id           BigInt  @id @default(autoincrement())
+  repo_id      BigInt?
+  commit_sha   String? @db.VarChar(64)
+  indexer_type Int     @default(0)
+
+  @@index([repo_id, indexer_type], map: "IDX_repo_indexer_status_s")
+}
+
+model repo_redirect {
+  id               BigInt  @id @default(autoincrement())
+  owner_id         BigInt?
+  lower_name       String  @db.VarChar(255)
+  redirect_repo_id BigInt?
+
+  @@unique([owner_id, lower_name], map: "UQE_repo_redirect_s")
+  @@index([lower_name], map: "IDX_repo_redirect_lower_name")
+}
+
+model repo_topic {
+  repo_id  BigInt
+  topic_id BigInt
+
+  @@id([repo_id, topic_id])
+}
+
+model repo_transfer {
+  id           BigInt  @id @default(autoincrement())
+  doer_id      BigInt?
+  recipient_id BigInt?
+  repo_id      BigInt?
+  team_i_ds    String? @db.Text
+  created_unix BigInt
+  updated_unix BigInt
+
+  @@index([created_unix], map: "IDX_repo_transfer_created_unix")
+  @@index([updated_unix], map: "IDX_repo_transfer_updated_unix")
+}
+
+model repo_unit {
+  id                   BigInt  @id @default(autoincrement())
+  repo_id              BigInt?
+  type                 Int?
+  config               String? @db.Text
+  created_unix         BigInt?
+  everyone_access_mode Int     @default(0)
+
+  @@index([created_unix], map: "IDX_repo_unit_created_unix")
+  @@index([repo_id, type], map: "IDX_repo_unit_s")
+}
+
+model repository {
+  id                                    BigInt   @id @default(autoincrement())
+  owner_id                              BigInt?
+  owner_name                            String?  @db.VarChar(255)
+  lower_name                            String   @db.VarChar(255)
+  name                                  String   @db.VarChar(255)
+  description                           String?  @db.Text
+  website                               String?  @db.VarChar(2048)
+  original_service_type                 Int?
+  original_url                          String?  @db.VarChar(2048)
+  default_branch                        String?  @db.VarChar(255)
+  default_wiki_branch                   String?  @db.VarChar(255)
+  num_watches                           Int?
+  num_stars                             Int?
+  num_forks                             Int?
+  num_issues                            Int?
+  num_closed_issues                     Int?
+  num_pulls                             Int?
+  num_closed_pulls                      Int?
+  num_milestones                        Int      @default(0)
+  num_closed_milestones                 Int      @default(0)
+  num_projects                          Int      @default(0)
+  num_closed_projects                   Int      @default(0)
+  num_action_runs                       Int      @default(0)
+  num_closed_action_runs                Int      @default(0)
+  is_private                            Boolean?
+  is_empty                              Boolean?
+  is_archived                           Boolean?
+  is_mirror                             Boolean?
+  status                                Int      @default(0)
+  is_fork                               Boolean  @default(false)
+  fork_id                               BigInt?
+  is_template                           Boolean  @default(false)
+  template_id                           BigInt?
+  size                                  BigInt   @default(0)
+  git_size                              BigInt   @default(0)
+  lfs_size                              BigInt   @default(0)
+  is_fsck_enabled                       Boolean  @default(true)
+  close_issues_via_commit_in_any_branch Boolean  @default(false)
+  topics                                String?  @db.Text
+  object_format_name                    String   @default("sha1") @db.VarChar(6)
+  trust_model                           Int?
+  avatar                                String?  @db.VarChar(64)
+  created_unix                          BigInt?
+  updated_unix                          BigInt?
+  archived_unix                         BigInt?  @default(0)
+
+  @@unique([owner_id, lower_name], map: "UQE_repository_s")
+  @@index([created_unix], map: "IDX_repository_created_unix")
+  @@index([fork_id], map: "IDX_repository_fork_id")
+  @@index([is_archived], map: "IDX_repository_is_archived")
+  @@index([is_empty], map: "IDX_repository_is_empty")
+  @@index([is_fork], map: "IDX_repository_is_fork")
+  @@index([is_mirror], map: "IDX_repository_is_mirror")
+  @@index([is_private], map: "IDX_repository_is_private")
+  @@index([is_template], map: "IDX_repository_is_template")
+  @@index([lower_name], map: "IDX_repository_lower_name")
+  @@index([name], map: "IDX_repository_name")
+  @@index([original_service_type], map: "IDX_repository_original_service_type")
+  @@index([owner_id], map: "IDX_repository_owner_id")
+  @@index([template_id], map: "IDX_repository_template_id")
+  @@index([updated_unix], map: "IDX_repository_updated_unix")
+}
+
+model review {
+  id                 BigInt  @id @default(autoincrement())
+  type               Int?
+  reviewer_id        BigInt?
+  reviewer_team_id   BigInt  @default(0)
+  original_author    String? @db.VarChar(255)
+  original_author_id BigInt?
+  issue_id           BigInt?
+  content            String? @db.Text
+  official           Boolean @default(false)
+  commit_id          String? @db.VarChar(64)
+  stale              Boolean @default(false)
+  dismissed          Boolean @default(false)
+  created_unix       BigInt?
+  updated_unix       BigInt?
+
+  @@index([created_unix], map: "IDX_review_created_unix")
+  @@index([issue_id], map: "IDX_review_issue_id")
+  @@index([reviewer_id], map: "IDX_review_reviewer_id")
+  @@index([updated_unix], map: "IDX_review_updated_unix")
+}
+
+model review_state {
+  id            BigInt  @id @default(autoincrement())
+  user_id       BigInt
+  pull_id       BigInt  @default(0)
+  commit_sha    String  @db.VarChar(64)
+  updated_files String  @db.Text
+  updated_unix  BigInt?
+
+  @@unique([user_id, pull_id, commit_sha], map: "UQE_review_state_pull_commit_user")
+  @@index([pull_id], map: "IDX_review_state_pull_id")
+}
+
+model secret {
+  id           BigInt  @id @default(autoincrement())
+  owner_id     BigInt
+  repo_id      BigInt  @default(0)
+  name         String  @db.VarChar(255)
+  data         String? @db.LongText
+  created_unix BigInt
+
+  @@unique([owner_id, repo_id, name], map: "UQE_secret_owner_repo_name")
+  @@index([owner_id], map: "IDX_secret_owner_id")
+  @@index([repo_id], map: "IDX_secret_repo_id")
+}
+
+model session {
+  key    String  @id @db.Char(16)
+  data   Bytes?  @db.Blob
+  expiry BigInt?
+}
+
+model star {
+  id           BigInt  @id @default(autoincrement())
+  uid          BigInt?
+  repo_id      BigInt?
+  created_unix BigInt?
+
+  @@unique([uid, repo_id], map: "UQE_star_s")
+  @@index([created_unix], map: "IDX_star_created_unix")
+}
+
+model stopwatch {
+  id           BigInt  @id @default(autoincrement())
+  issue_id     BigInt?
+  user_id      BigInt?
+  created_unix BigInt?
+
+  @@index([issue_id], map: "IDX_stopwatch_issue_id")
+  @@index([user_id], map: "IDX_stopwatch_user_id")
+}
+
+model system_setting {
+  id            BigInt  @id @default(autoincrement())
+  setting_key   String? @unique(map: "UQE_system_setting_setting_key") @db.VarChar(255)
+  setting_value String? @db.Text
+  version       Int?
+  created       BigInt?
+  updated       BigInt?
+}
+
+model task {
+  id              BigInt  @id @default(autoincrement())
+  doer_id         BigInt?
+  owner_id        BigInt?
+  repo_id         BigInt?
+  type            Int?
+  status          Int?
+  start_time      BigInt?
+  end_time        BigInt?
+  payload_content String? @db.Text
+  message         String? @db.Text
+  created         BigInt?
+
+  @@index([doer_id], map: "IDX_task_doer_id")
+  @@index([owner_id], map: "IDX_task_owner_id")
+  @@index([repo_id], map: "IDX_task_repo_id")
+  @@index([status], map: "IDX_task_status")
+}
+
+model team {
+  id                        BigInt  @id @default(autoincrement())
+  org_id                    BigInt?
+  lower_name                String? @db.VarChar(255)
+  name                      String? @db.VarChar(255)
+  description               String? @db.VarChar(255)
+  authorize                 Int?
+  num_repos                 Int?
+  num_members               Int?
+  includes_all_repositories Boolean @default(false)
+  can_create_org_repo       Boolean @default(false)
+
+  @@index([org_id], map: "IDX_team_org_id")
+}
+
+model team_invite {
+  id           BigInt  @id @default(autoincrement())
+  token        String  @default("") @db.VarChar(255)
+  inviter_id   BigInt  @default(0)
+  org_id       BigInt  @default(0)
+  team_id      BigInt  @default(0)
+  email        String  @default("") @db.VarChar(255)
+  created_unix BigInt?
+  updated_unix BigInt?
+
+  @@unique([team_id, email], map: "UQE_team_invite_team_mail")
+  @@index([created_unix], map: "IDX_team_invite_created_unix")
+  @@index([org_id], map: "IDX_team_invite_org_id")
+  @@index([team_id], map: "IDX_team_invite_team_id")
+  @@index([token], map: "IDX_team_invite_token")
+  @@index([updated_unix], map: "IDX_team_invite_updated_unix")
+}
+
+model team_repo {
+  id      BigInt  @id @default(autoincrement())
+  org_id  BigInt?
+  team_id BigInt?
+  repo_id BigInt?
+
+  @@unique([team_id, repo_id], map: "UQE_team_repo_s")
+  @@index([org_id], map: "IDX_team_repo_org_id")
+}
+
+model team_unit {
+  id          BigInt  @id @default(autoincrement())
+  org_id      BigInt?
+  team_id     BigInt?
+  type        Int?
+  access_mode Int?
+
+  @@unique([team_id, type], map: "UQE_team_unit_s")
+  @@index([org_id], map: "IDX_team_unit_org_id")
+}
+
+model team_user {
+  id      BigInt  @id @default(autoincrement())
+  org_id  BigInt?
+  team_id BigInt?
+  uid     BigInt?
+
+  @@unique([team_id, uid], map: "UQE_team_user_s")
+  @@index([org_id], map: "IDX_team_user_org_id")
+}
+
+model topic {
+  id           BigInt  @id @default(autoincrement())
+  name         String? @unique(map: "UQE_topic_name") @db.VarChar(50)
+  repo_count   Int?
+  created_unix BigInt?
+  updated_unix BigInt?
+
+  @@index([created_unix], map: "IDX_topic_created_unix")
+  @@index([updated_unix], map: "IDX_topic_updated_unix")
+}
+
+model tracked_time {
+  id           BigInt  @id @default(autoincrement())
+  issue_id     BigInt?
+  user_id      BigInt?
+  created_unix BigInt?
+  time         BigInt
+  deleted      Boolean @default(false)
+
+  @@index([issue_id], map: "IDX_tracked_time_issue_id")
+  @@index([user_id], map: "IDX_tracked_time_user_id")
+}
+
+model two_factor {
+  id                 BigInt  @id @default(autoincrement())
+  uid                BigInt? @unique(map: "UQE_two_factor_uid")
+  secret             String? @db.VarChar(255)
+  scratch_salt       String? @db.VarChar(255)
+  scratch_hash       String? @db.VarChar(255)
+  last_used_passcode String? @db.VarChar(10)
+  created_unix       BigInt?
+  updated_unix       BigInt?
+
+  @@index([created_unix], map: "IDX_two_factor_created_unix")
+  @@index([updated_unix], map: "IDX_two_factor_updated_unix")
+}
+
+model upload {
+  id   BigInt  @id @default(autoincrement())
+  uuid String? @unique(map: "UQE_upload_uuid") @db.VarChar(40)
+  name String? @db.VarChar(255)
+}
+
+model user {
+  id                             BigInt   @id @default(autoincrement())
+  lower_name                     String   @unique(map: "UQE_user_lower_name") @db.VarChar(255)
+  name                           String   @unique(map: "UQE_user_name") @db.VarChar(255)
+  full_name                      String?  @db.VarChar(255)
+  email                          String   @db.VarChar(255)
+  keep_email_private             Boolean?
+  email_notifications_preference String   @default("enabled") @db.VarChar(20)
+  passwd                         String   @db.VarChar(255)
+  passwd_hash_algo               String   @default("argon2") @db.VarChar(255)
+  must_change_password           Boolean  @default(false)
+  login_type                     Int?
+  login_source                   BigInt   @default(0)
+  login_name                     String?  @db.VarChar(255)
+  type                           Int?
+  location                       String?  @db.VarChar(255)
+  website                        String?  @db.VarChar(255)
+  rands                          String?  @db.VarChar(32)
+  salt                           String?  @db.VarChar(32)
+  language                       String?  @db.VarChar(5)
+  description                    String?  @db.VarChar(255)
+  created_unix                   BigInt?
+  updated_unix                   BigInt?
+  last_login_unix                BigInt?
+  last_repo_visibility           Boolean?
+  max_repo_creation              Int      @default(-1)
+  is_active                      Boolean?
+  is_admin                       Boolean?
+  is_restricted                  Boolean  @default(false)
+  allow_git_hook                 Boolean?
+  allow_import_local             Boolean?
+  allow_create_organization      Boolean? @default(true)
+  prohibit_login                 Boolean  @default(false)
+  avatar                         String   @db.VarChar(2048)
+  avatar_email                   String   @db.VarChar(255)
+  use_custom_avatar              Boolean?
+  num_followers                  Int?
+  num_following                  Int      @default(0)
+  num_stars                      Int?
+  num_repos                      Int?
+  num_teams                      Int?
+  num_members                    Int?
+  visibility                     Int      @default(0)
+  repo_admin_change_team_access  Boolean  @default(false)
+  diff_view_style                String   @default("") @db.VarChar(255)
+  theme                          String   @default("") @db.VarChar(255)
+  keep_activity_private          Boolean  @default(false)
+
+  @@index([created_unix], map: "IDX_user_created_unix")
+  @@index([is_active], map: "IDX_user_is_active")
+  @@index([last_login_unix], map: "IDX_user_last_login_unix")
+  @@index([updated_unix], map: "IDX_user_updated_unix")
+}
+
+model user_badge {
+  id       BigInt  @id @default(autoincrement())
+  badge_id BigInt?
+  user_id  BigInt?
+
+  @@index([user_id], map: "IDX_user_badge_user_id")
+}
+
+model user_blocking {
+  id           BigInt  @id @default(autoincrement())
+  blocker_id   BigInt?
+  blockee_id   BigInt?
+  note         String? @db.VarChar(255)
+  created_unix BigInt?
+
+  @@unique([blocker_id, blockee_id], map: "UQE_user_blocking_block")
+  @@index([created_unix], map: "IDX_user_blocking_created_unix")
+}
+
+model user_open_id {
+  id   BigInt   @id @default(autoincrement())
+  uid  BigInt
+  uri  String   @unique(map: "UQE_user_open_id_uri") @db.VarChar(255)
+  show Boolean? @default(false)
+
+  @@index([uid], map: "IDX_user_open_id_uid")
+}
+
+model user_redirect {
+  id               BigInt  @id @default(autoincrement())
+  lower_name       String  @unique(map: "UQE_user_redirect_s") @db.VarChar(255)
+  redirect_user_id BigInt?
+
+  @@index([lower_name], map: "IDX_user_redirect_lower_name")
+}
+
+model user_setting {
+  id            BigInt  @id @default(autoincrement())
+  user_id       BigInt?
+  setting_key   String? @db.VarChar(255)
+  setting_value String? @db.Text
+
+  @@unique([user_id, setting_key], map: "UQE_user_setting_key_userid")
+  @@index([setting_key], map: "IDX_user_setting_setting_key")
+  @@index([user_id], map: "IDX_user_setting_user_id")
+}
+
+model version {
+  id      BigInt  @id @default(autoincrement())
+  version BigInt?
+}
+
+model watch {
+  id           BigInt  @id @default(autoincrement())
+  user_id      BigInt?
+  repo_id      BigInt?
+  mode         Int     @default(1) @db.SmallInt
+  created_unix BigInt?
+  updated_unix BigInt?
+
+  @@unique([user_id, repo_id], map: "UQE_watch_watch")
+  @@index([created_unix], map: "IDX_watch_created_unix")
+  @@index([updated_unix], map: "IDX_watch_updated_unix")
+}
+
+model webauthn_credential {
+  id               BigInt   @id @default(autoincrement())
+  name             String?  @db.VarChar(255)
+  lower_name       String?  @db.VarChar(255)
+  user_id          BigInt?
+  credential_id    Bytes?   @db.VarBinary(1024)
+  public_key       Bytes?   @db.Blob
+  attestation_type String?  @db.VarChar(255)
+  aaguid           Bytes?   @db.Blob
+  sign_count       BigInt?
+  clone_warning    Boolean?
+  created_unix     BigInt?
+  updated_unix     BigInt?
+
+  @@unique([lower_name, user_id], map: "UQE_webauthn_credential_s")
+  @@index([created_unix], map: "IDX_webauthn_credential_created_unix")
+  @@index([credential_id], map: "IDX_webauthn_credential_credential_id")
+  @@index([updated_unix], map: "IDX_webauthn_credential_updated_unix")
+  @@index([user_id], map: "IDX_webauthn_credential_user_id")
+}
+
+model webhook {
+  id                             BigInt   @id @default(autoincrement())
+  repo_id                        BigInt?
+  owner_id                       BigInt?
+  is_system_webhook              Boolean?
+  url                            String?  @db.Text
+  http_method                    String?  @db.VarChar(255)
+  content_type                   Int?
+  secret                         String?  @db.Text
+  events                         String?  @db.Text
+  is_active                      Boolean?
+  type                           String?  @db.VarChar(16)
+  meta                           String?  @db.Text
+  last_status                    Int?
+  header_authorization_encrypted String?  @db.Text
+  created_unix                   BigInt?
+  updated_unix                   BigInt?
+
+  @@index([created_unix], map: "IDX_webhook_created_unix")
+  @@index([is_active], map: "IDX_webhook_is_active")
+  @@index([owner_id], map: "IDX_webhook_owner_id")
+  @@index([repo_id], map: "IDX_webhook_repo_id")
+  @@index([updated_unix], map: "IDX_webhook_updated_unix")
+}
