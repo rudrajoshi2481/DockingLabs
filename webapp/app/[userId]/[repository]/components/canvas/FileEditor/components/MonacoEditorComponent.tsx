@@ -22,7 +22,7 @@ function MonacoEditorComponent() {
 
   return (
     <div style={{ height: "80vh" }} className="shadow-sm">
-      <Editor defaultLanguage="javascript" value={Value} className={poppins.className}/>
+      <Editor defaultLanguage="pdb" value={Value} className={poppins.className}/>
     </div>
   );
 }

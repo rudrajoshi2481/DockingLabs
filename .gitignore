@@ -3,3 +3,6 @@ __pycache__/
 .vscode/
 .next/
 */build/*
+
+*/mariadb/*
+*/gitea/*

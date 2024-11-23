@@ -14,10 +14,10 @@ function Page() {
     <div className="px-3">
       <AuroraBackground className="mt-3">
         <div className="flex justify-center flex-col items-center my-[15vh]">
-          <h1 className="text-8xl font-bold">Idea to software, fast</h1>
+          <h1 className="text-8xl font-bold">No code Bioinformatics</h1>
           <p className="text-2xl mt-2 max-w-[50vw] text-center">
-            Replit is an AI-driven software creation platform where everyone can
-            build, share, and ship software fast.
+            Sorcery dock is an AI-driven software creation platform where everyone can
+            build, share, and ship Research fast.
           </p>
 
           <div className="mt-6">
