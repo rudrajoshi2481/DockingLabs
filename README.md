@@ -1,91 +1,174 @@
----
-title: Docking Labs
----
+# Docking Labs 🧬
 
-# Docking Labs
+<div align="center">
 
-Welcome to Docking Labs! This project aims to revolutionize the docking process, making it more accessible and collaborative for students and researchers worldwide. With Docking Labs, you can dive straight into your docking projects without worrying about installing dependencies or having prior knowledge of Bash, Python, or any computational jargon.
+[![Next.js](https://img.shields.io/badge/Next.js-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-## Overview
+Welcome to Docking Labs! 🚀 Revolutionizing the docking process for students and researchers worldwide.
 
-Docking Labs is a web-based platform designed to streamline the docking process. Whether you are a student new to docking or an experienced researcher, Docking Labs provides a seamless experience that allows you to focus on your research without getting bogged down by technical details.
+[Get Started](#installation) • [Features](#features) • [Documentation](#usage) • [Contribute](#contributing)
 
-## Features
+</div>
 
-- **No Installation Required**: Start docking directly from your web browser (Chrome recommended).
-- **User-Friendly Interface**: Intuitive UI that requires no prior knowledge of Bash, Python, or computational jargon.
-- **Collaborative Environment**: Collaborate with team members from anywhere in the world.
-- **Alternative to GitHub**: Manage multiple user workflows, add users to teams, and streamline project management.
-- **Real-Time Collaboration**: Work with your team in real-time, enhancing productivity and efficiency.
+## 🌟 Overview
 
-## Technologies Used
+Docking Labs is a web-based platform designed to streamline the docking process. Whether you're a student new to docking or an experienced researcher, our platform provides a seamless experience that lets you focus on your research without getting bogged down by technical details.
 
-- **Frontend**: [Next.js](https://nextjs.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/), [Shadcn](https://shadcn.dev/)
-- **Git Server**: [Gitea](https://gitea.io/en-us/)
-- **Containerization**: [Docker](https://www.docker.com/)
+<details>
+<summary>✨ Why Choose Docking Labs?</summary>
 
-## Installation
+- 🌐 **Browser-Based**: No local installation required
+- 🤝 **Collaborative**: Work with teams globally
+- 🎯 **User-Friendly**: Intuitive interface for all skill levels
+- 🔄 **Real-Time**: Instant updates and collaboration
+- 📊 **Project Management**: Built-in tools for team coordination
 
-To get started with Docking Labs, follow these steps:
+</details>
+
+## 🚀 Features
+
+<details open>
+<summary><b>Core Features</b></summary>
+
+- **🌐 No Installation Required**
+  - Start docking directly from your web browser
+  - Chrome recommended for best experience
+
+- **👥 Collaborative Environment**
+  - Real-time collaboration with team members
+  - Share projects and results instantly
+  
+- **🎨 User-Friendly Interface**
+  - Intuitive UI design
+  - No prior technical knowledge needed
+  
+- **🔄 Workflow Management**
+  - Multiple user workflows
+  - Team management capabilities
+  - Project organization tools
+
+</details>
+
+## 💻 Technologies Used
+
+<details>
+<summary>View Tech Stack</summary>
+
+| Technology | Purpose |
+|------------|---------|
+| [Next.js](https://nextjs.org/) | Frontend Framework |
+| [Tailwind CSS](https://tailwindcss.com/) | Styling |
+| [Shadcn](https://shadcn.dev/) | UI Components |
+| [Gitea](https://gitea.io/en-us/) | Git Server |
+| [Docker](https://www.docker.com/) | Containerization |
+
+</details>
+
+## 🛠️ Installation
+
+<details>
+<summary>Step-by-Step Guide</summary>
+
+### Prerequisites
+- Docker installed on your machine ([Get Docker](https://docs.docker.com/get-docker/))
+- Git ([Download Git](https://git-scm.com/downloads))
+
+### Setup Steps
 
 1. **Clone the Repository**
-   \`\`\`bash
+   ```bash
    git clone https://github.com/yourusername/docking-labs.git
    cd docking-labs
-   \`\`\`
+   ```
 
-2. **Set Up Docker**
-   Ensure you have Docker installed on your machine. If not, follow the [Docker installation guide](https://docs.docker.com/get-docker/).
-
-3. **Start the Docker Containers**
-   \`\`\`bash
+2. **Start Docker Containers**
+   ```bash
    docker-compose up
-   \`\`\`
+   ```
 
-4. **Access the Web Application**
-   Open your web browser and navigate to \`http://localhost:3000\`.
+3. **Access the Application**
+   - Open your browser
+   - Navigate to http://localhost:3000
+   - You're ready to go! 🎉
 
-## Usage
+</details>
 
-### Web Interface
+## 📖 Usage
 
-1. **Login/Register**: Create an account or log in using your credentials.
-2. **Create/Join Projects**: Start a new project or join an existing one.
-3. **Collaborate**: Invite team members and collaborate in real-time.
-4. **Docking**: Upload your files and start the docking process with a few clicks.
+<details>
+<summary>Web Interface Guide</summary>
 
-### Git Server
+### Getting Started
+1. **Create Account or Login**
+   - Sign up for a new account
+   - Or login with existing credentials
 
-1. **Clone Repository**: Clone your project's repository from the Gitea server.
-   \`\`\`bash
-   git clone http://your-gitea-server/username/repository.git
-   \`\`\`
-2. **Push/Pull Changes**: Use standard Git commands to push and pull changes.
+2. **Project Management**
+   - Create new projects
+   - Join existing projects
+   - Invite team members
 
-## Contributing
+3. **Docking Process**
+   - Upload your files
+   - Configure docking parameters
+   - Monitor progress in real-time
 
-We welcome contributions from the community! To contribute:
+</details>
 
-1. Fork the repository.
-2. Create a new branch.
-   \`\`\`bash
-   git checkout -b feature/your-feature
-   \`\`\`
-3. Make your changes and commit them.
-   \`\`\`bash
-   git commit -m "Add your feature"
-   \`\`\`
-4. Push to your branch.
-   \`\`\`bash
-   git push origin feature/your-feature
-   \`\`\`
-5. Open a Pull Request.
+<details>
+<summary>Git Server Usage</summary>
 
-## License
+### Basic Git Commands
+```bash
+# Clone your project
+git clone http://your-gitea-server/username/repository.git
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+# Create and switch to a new branch
+git checkout -b feature/new-feature
+
+# Push your changes
+git push origin feature/new-feature
+```
+
+</details>
+
+## 👥 Contributing
+
+<details>
+<summary>How to Contribute</summary>
+
+We love contributions! Here's how you can help:
+
+1. 🍴 Fork the repository
+2. 🌿 Create your feature branch
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+3. 💾 Commit your changes
+   ```bash
+   git commit -m "Add amazing feature"
+   ```
+4. 📤 Push to your branch
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+5. 🔄 Open a Pull Request
+
+</details>
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-Thank you for using Docking Labs! We hope it makes your docking experience smoother and more enjoyable. If you have any questions or need assistance, feel free to open an issue or contact us. Happy docking!
+<div align="center">
+
+**Made with ❤️ by Rudhra Joshi**
+
+[Report Bug](../../issues) • [Request Feature](../../issues) • [Documentation](../../wiki)
+
+</div>
